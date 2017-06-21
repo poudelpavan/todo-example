@@ -1,0 +1,15 @@
+<html>
+<body>
+<h1>Things to bring in the picnic</h1>
+<table>
+<tr><th>Item</th><th>Quantity</th></tr>
+%for row in rows:
+	<tr>
+	%for col in row:
+		<td><p>list</p>{col}}</td>
+	%end
+	</tr>
+%end
+</table>
+</body>
+</html>
