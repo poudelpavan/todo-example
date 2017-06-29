@@ -1,33 +1,21 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file, error
+from bottle import route, run, debug, template, request, static_file, error, default_app
 
 # only needed when you run Bottle on mod_wsgi
-from bottle import default_app
+#from bottle import default_app
 
 
+@route('/')
 @route('/todo')
 def todo_list():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    result = c.fetchall()
+    c.close()
 
-    if request.GET.delete:
-	new = request.GET.task.strip()
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-	new_id = c.lastrowid
-        c.execute("DELETE FROM todo WHERE id = 8")
-        
-        conn.commit()
-        c.close()
-
-        return '<p>1 row deleted %s</p>' %new_id
-    else:
-    	conn = sqlite3.connect('todo.db')
-    	c = conn.cursor()
-    	c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
-    	result = c.fetchall()
-    	c.close()
-
-    	output = template('make_table', rows=result)
-    	return output
+    output = template('make_table.tpl', rows=result)
+    return output
 
 
 @route('/new', method='GET')
@@ -45,7 +33,7 @@ def new_item():
         conn.commit()
         c.close()
 
-        return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
+        return '<p>The new task was inserted into the database, the ID is %s</p><br/><form action="/"><input type="submit" name="home" value="Return back to Home"></form><form action="/new", method="GET" ><input type="submit" name="new" value="Add More Items"></form>' % new_id
 
     else:
         return template('new_task.tpl')
@@ -68,7 +56,7 @@ def edit_item(no):
         c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
         conn.commit()
 
-        return '<p>The item number %s was successfully updated</p>' % no
+        return '<p>The item number %s was successfully updated</p><br/><form action="/"><input type="submit" name="home" value="Return back to Home"></form><form action="/edit", method="GET" ><input type="submit" name="edit" value="Edit More Items"></form>' % no
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
@@ -76,6 +64,39 @@ def edit_item(no):
         cur_data = c.fetchone()
 
         return template('edit_task', old=cur_data, no=no)
+
+@route('/edit')
+def todo_list_with_edit():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    result = c.fetchall()
+    c.close()
+
+    output = template('edit_table.tpl', rows=result)
+    return output
+
+
+@route('/delete')
+def todo_list_with_del():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    result = c.fetchall()
+    c.close()
+
+    output = template('delete_table.tpl', rows=result)
+    return output
+
+
+@route('/delete/<id:int>', method='GET')
+def delete_item(id):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM todo WHERE id LIKE ?", (str(id)))
+    conn.commit()
+
+    return '<p><b>The item number %s was successfully deleted.</b></p><br/><form action="/"><input type="submit" name="home" value="Return back to Home"></form>' % id
 
 
 @route('/item<item:re:[0-9]+>')
@@ -124,5 +145,6 @@ def mistake404(code):
     return 'Sorry, this page does not exist!'
 
 
-debug(True)
-run(reloader=True)
+#debug(True)
+#run(reloader=True)
+application = default_app()
