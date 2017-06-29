@@ -8,14 +8,26 @@ from bottle import default_app
 @route('/todo')
 def todo_list():
 
-    conn = sqlite3.connect('todo.db')
-    c = conn.cursor()
-    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
-    result = c.fetchall()
-    c.close()
+    if request.GET.delete:
+	new = request.GET.task.strip()
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+	new_id = c.lastrowid
+        c.execute("DELETE FROM todo WHERE id = 8")
+        
+        conn.commit()
+        c.close()
 
-    output = template('make_table', rows=result)
-    return output
+        return '<p>1 row deleted %s</p>' %new_id
+    else:
+    	conn = sqlite3.connect('todo.db')
+    	c = conn.cursor()
+    	c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    	result = c.fetchall()
+    	c.close()
+
+    	output = template('make_table', rows=result)
+    	return output
 
 
 @route('/new', method='GET')

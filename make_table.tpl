@@ -6,6 +6,7 @@
   %for col in row:
     <td>{{col}}</td>
   %end
+  <td><form><input type="submit" name="delete" value="delete"></form></td>
   </tr>
 %end
 </table>
