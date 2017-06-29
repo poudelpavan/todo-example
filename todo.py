@@ -96,7 +96,7 @@ def delete_item(id):
     c.execute("DELETE FROM todo WHERE id LIKE ?", (str(id)))
     conn.commit()
 
-    return '<p><b>The item number %s was successfully deleted.</b></p><br/><form action="/"><input type="submit" name="home" value="Return back to Home"></form>' % id
+    return '<p><b>The item number %s was successfully deleted.</b></p><br/><form action="/"><input type="submit" name="home" value="Return back to Home"></form><form action="/delete", method="GET" ><input type="submit" name="delete" value="Delete More Items"></form>' % id
 
 
 @route('/item<item:re:[0-9]+>')
